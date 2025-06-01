@@ -2,6 +2,7 @@
 #define NO_H
 
 #include <string>
+#include <vector>
 #include "Aresta.h"
 
 
@@ -11,9 +12,9 @@ public:
     No();
     ~No();
 
-    int id;
-    double peso;
-    Aresta* primeira_aresta;
+    char id;
+    int peso;
+    vector<Aresta*> arestas;
 };
 
 
