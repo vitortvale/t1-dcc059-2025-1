@@ -27,12 +27,12 @@ vector<char> Grafo::caminho_minimo_floyd(int id_no, int id_no_b) {
     return {};
 }
 
-Grafo * Grafo::arvore_geradora_minima_prim(int *ids_nos, int tam_conjunto) {
+Grafo * Grafo::arvore_geradora_minima_prim(vector<char> ids_nos) {
     cout<<"Metodo nao implementado"<<endl;
     return nullptr;
 }
 
-Grafo * Grafo::arvore_geradora_minima_kruskal(int *ids_nos, int tam_conjunto) {
+Grafo * Grafo::arvore_geradora_minima_kruskal(vector<char> ids_nos) {
     cout<<"Metodo nao implementado"<<endl;
     return nullptr;
 }

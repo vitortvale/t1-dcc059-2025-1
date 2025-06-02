@@ -20,8 +20,8 @@ public:
     vector<char> fecho_transitivo_indireto(int id_no); // b
     vector<char> caminho_minimo_dijkstra(int id_no_a, int id_no_b); // c
     vector<char> caminho_minimo_floyd(int id_no, int id_no_b); // d
-    Grafo* arvore_geradora_minima_prim(int* ids_nos, int tam_conjunto); // e
-    Grafo* arvore_geradora_minima_kruskal(int* ids_nos, int tam_conjunto); // f
+    Grafo* arvore_geradora_minima_prim(vector<char> ids_nos); // e
+    Grafo* arvore_geradora_minima_kruskal(vector<char> ids_nos); // f
     Grafo* arvore_caminhamento_profundidade(int id_no); // g
     int raio(); // h 1
     int diametro(); // h 2

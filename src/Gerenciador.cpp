@@ -19,7 +19,7 @@ void Gerenciador::comandos(Grafo* grafo) {
     switch (resp) {
         case 'a': {
 
-            int id_no = get_id_entrada();
+            char id_no = get_id_entrada();
             vector<char> fecho_transitivo_direto = grafo->fecho_transitivo_direto(id_no);
             cout<<"Metodo de impressao em tela nao implementado"<<endl<<endl;
 
@@ -33,7 +33,7 @@ void Gerenciador::comandos(Grafo* grafo) {
 
         case 'b':{
 
-            int id_no = get_id_entrada();
+            char id_no = get_id_entrada();
             vector<char> fecho_transitivo_indireto = grafo->fecho_transitivo_indireto(id_no);
             cout<<"Metodo de impressao em tela nao implementado"<<endl<<endl;
 
@@ -47,8 +47,8 @@ void Gerenciador::comandos(Grafo* grafo) {
 
         case 'c': {
 
-            int id_no_1 = get_id_entrada();
-            int id_no_2 = get_id_entrada();
+            char id_no_1 = get_id_entrada();
+            char id_no_2 = get_id_entrada();
             vector<char> caminho_minimo_dijkstra = grafo->caminho_minimo_dijkstra(id_no_1,id_no_2);
             cout<<"Metodo de impressao em tela nao implementado"<<endl<<endl;
 
@@ -62,8 +62,8 @@ void Gerenciador::comandos(Grafo* grafo) {
 
         case 'd': {
 
-            int id_no_1 = get_id_entrada();
-            int id_no_2 = get_id_entrada();
+            char id_no_1 = get_id_entrada();
+            char id_no_2 = get_id_entrada();
             vector<char> caminho_minimo_floyd = grafo->caminho_minimo_floyd(id_no_1,id_no_2);
             cout<<"Metodo de impressao em tela nao implementado"<<endl<<endl;
 
@@ -82,8 +82,8 @@ void Gerenciador::comandos(Grafo* grafo) {
 
             if(tam > 0 && tam <= grafo->ordem) {
 
-                int* ids = get_conjunto_ids(grafo,tam);
-                Grafo* arvore_geradora_minima_prim = grafo->arvore_geradora_minima_prim(ids, tam);
+                vector<char> ids = get_conjunto_ids(grafo,tam);
+                Grafo* arvore_geradora_minima_prim = grafo->arvore_geradora_minima_prim(ids);
                 cout<<"Metodo de impressao em tela nao implementado"<<endl<<endl;
 
                 if(pergunta_imprimir_arquivo("agm_prim.txt")) {
@@ -107,8 +107,8 @@ void Gerenciador::comandos(Grafo* grafo) {
 
             if(tam > 0 && tam <= grafo->ordem) {
 
-                int* ids = get_conjunto_ids(grafo,tam);
-                Grafo* arvore_geradora_minima_kruskal = grafo->arvore_geradora_minima_kruskal(ids, tam);
+                vector<char> ids = get_conjunto_ids(grafo,tam);
+                Grafo* arvore_geradora_minima_kruskal = grafo->arvore_geradora_minima_kruskal(ids);
                 cout<<"Metodo de impressao em tela nao implementado"<<endl<<endl;
 
                 if(pergunta_imprimir_arquivo("agm_kruskal.txt")) {
@@ -126,7 +126,7 @@ void Gerenciador::comandos(Grafo* grafo) {
 
         case 'g': {
 
-            int id_no = get_id_entrada();
+            char id_no = get_id_entrada();
             Grafo* arvore_caminhamento_profundidade = grafo->arvore_caminhamento_profundidade(id_no);
             cout<<"Metodo de impressao em tela nao implementado"<<endl<<endl;
 
@@ -172,36 +172,39 @@ void Gerenciador::comandos(Grafo* grafo) {
 
 }
 
-int Gerenciador::get_id_entrada() {
+char Gerenciador::get_id_entrada() {
     cout<<"Digite o id de um no: ";
-    int id;
+    char id;
     cin>>id;
     cout<<endl;
     return id;
 }
 
-int * Gerenciador::get_conjunto_ids(Grafo *grafo, int tam) {
-    int* ids = new int[tam];
-    for(int i=0; i<tam;i++) {
-        int id_no =get_id_entrada();
-        bool repetido = false;
-        for(int j=0; j<i; j++) {
-            if(ids[j] == id_no) {
-                cout<<"Valor repetido"<<endl;
-                i--;
-                repetido = true;
-                break;
-            }else if (id_no >= grafo->ordem) {
-                cout<<"No inexistente"<<endl;
-                i--;
-                repetido = true;
+vector<char> Gerenciador::get_conjunto_ids(Grafo *grafo, int tam) {
+    vector<char> ids = {};
+    while((int)ids.size() < tam) {
+        char id_no =get_id_entrada();
+        bool existe = false;
+        for(No* no: grafo->lista_adj){
+            if(no->id == id_no){
+                existe = true;
                 break;
             }
         }
-        if(!repetido) {
-            ids[i] = id_no;
+
+        if(!existe){
+            cout<<"Vertice nao existe"<<endl;
+        }else{
+            bool repetido = find(ids.begin(), ids.end(),id_no) != ids.end();
+            if(repetido) {
+                    cout<<"Valor repetido"<<endl;
+            }else {
+                ids.push_back(id_no);
+            }
         }
+
     }
+
     return ids;
 }
 
