@@ -15,6 +15,7 @@ public:
     char id;
     int peso;
     vector<Aresta*> arestas;
+    // implementar add aresta(push no vector)
 };
 
 

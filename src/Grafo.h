@@ -35,6 +35,7 @@ public:
     bool is_ponderado_aresta;
     bool is_ponderado_vertice;
     vector<No*> lista_adj;
+    //implementar add no (push no vector)
 };
 
 
