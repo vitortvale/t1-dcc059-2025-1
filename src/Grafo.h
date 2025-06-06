@@ -31,9 +31,9 @@ public:
 
 
     int ordem;
-    bool in_direcionado;
-    bool in_ponderado_aresta;
-    bool in_ponderado_vertice;
+    bool is_direcionado;
+    bool is_ponderado_aresta;
+    bool is_ponderado_vertice;
     vector<No*> lista_adj;
 };
 
