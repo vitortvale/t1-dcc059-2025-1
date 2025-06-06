@@ -2,7 +2,7 @@
 **Universidade Federal de Juiz de Fora**
 **Departamento de Ciência da Computação**
 **DCC059 – Teoria dos Grafos – Turma A**
-**Semestre 2025/1 - Profa Luciana Brugiolo**
+**Semestre 2025/1 - Profa Luciana Brugiolo - Tutor Rafael Freesz**
 **Data entrega: 30/06**
 
 Este documento traz a especificação do Trabalho 1, atividade avaliativa do tipo “Trabalho Prático”, e serve de base para todas as atividades de implementação cobradas ao longo do curso da disciplina DCC059 - Teoria dos Grafos no semestre letivo 2025-1.
@@ -30,10 +30,10 @@ int main (int argc, char **argv)
 ~~~
 para passar ao programa todas as informações necessárias ao seu funcionamento;
 
-- Cada grupo enviará um único trabalho contendo **APENAS** os arquivos fonte (extensão c, cc, cpp e h) e os arquivos de entrada utilizados (caso estes não tenham sido disponibilizados);
+- Cada grupo enviará um único trabalho contendo **APENAS** os arquivos fonte (extensão cpp e h) e os arquivos de entrada utilizados (caso estes não tenham sido disponibilizados);
 O padrão para compilação a ser utilizado (ambiente Linux ou IOS) será
 ~~~
-g++ *.c* -o execGrupoX
+g++ *.cpp -o execGrupoX
 ~~~
 Onde “GrupoX” indica a qual grupo o trabalho se refere; 
 
@@ -44,7 +44,7 @@ Onde “GrupoX” indica a qual grupo o trabalho se refere;
 Onde *<arquivo_entrada>* é o nome do arquivo que contém as informações do grafo.
 
 - O grupo deve enviar um ÚNICO arquivo compactado cujo nome deve ser **Trabalho_GrupoX.zip**. 
-**Nota:** no arquivo zip deve ter incluso **APENAS** os arquivos com extensão c, cc, cpp ou h e os arquivos das instâncias usadas no experimento.
+**Nota:** no arquivo zip deve ter incluso **APENAS** os arquivos com extensão cpp ou h e os arquivos das instâncias usadas no experimento.
 
 - Este repositório contem o os arquivos com classes e funções que devem compor minimamente o trabalho. Fica à critério do grupo a inclusão de demais classes, atributos ou funções que venham a auxiliar no desenvolvimento do trabalho.
 
@@ -60,7 +60,6 @@ O programa deve apresentar em tela a saída para as seguintes funções:
 **F.** **Parâmetro:** um subconjunto X de vértices do grafo; **Saída:** uma Árvore Geradora Mínima sobre o subgrafo vértice-induzido por X usando o algoritmo de Kruskal;
 **G.** **Parâmetro:** um ID de vértice;**Saída:** a árvore dada pela ordem de caminhamento em profundidade a partir de nó dado parâmetro, destacando as arestas de retorno;
 **H.** **Parâmetro:** o grafo (direcionado ou não direcionado) ponderado nas arestas; **Saída:** O raio, o diâmetro, o centro e a periferia do grafo.
-**I.** **Parâmetro:** o grafo não direcionado **Saída:** O conjunto de vértices de articulação.
 
 ## Perguntas Frequentes
 
