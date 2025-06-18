@@ -17,6 +17,7 @@ public:
     Grafo();
     ~Grafo();
 
+    //atuzaliar int id_no para char id_no
     vector<char> fecho_transitivo_direto(int id_no); // a
     vector<char> fecho_transitivo_indireto(int id_no); // b
     vector<char> caminho_minimo_dijkstra(int id_no_a, int id_no_b); // c

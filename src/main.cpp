@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 
     Leitor* leitor = new Leitor();
     Grafo* grafo = new Grafo();
-    leitor->ler(argv[1], grafo);
+    leitor->ler(argv[1],grafo);
     
     //Gerenciador::comandos(grafo);
 
