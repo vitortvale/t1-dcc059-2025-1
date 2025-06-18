@@ -2,7 +2,12 @@
 
 
 Grafo::Grafo() {
+    /*this->ordem = info.ordem;
+    this->is_direcionado = info.is_direcionado;
+    this->is_ponderado_aresta = info.is_ponderado_aresta;
+    this->is_ponderado_vertice = info.is_ponderado_vertice;*/
 }
+
 
 Grafo::~Grafo() {
 }
@@ -65,4 +70,8 @@ vector<char> Grafo::periferia() {
 vector<char> Grafo::vertices_de_articulacao() {
     cout<<"Metodo nao implementado"<<endl;
     return {};
+}
+
+void Grafo::add_no(No *p) {
+    this->lista_adj.push_back(p);
 }

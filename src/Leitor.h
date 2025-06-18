@@ -2,15 +2,16 @@
 #define LEITOR_H
 
 #include <iostream>
-#include "Info.cpp"
+#include "Info.h"
+#include "Grafo.h"
 
 using namespace std;
 
 class Leitor {
     public:
         Leitor();
-        ~Leitor();
-        Info ler();
+        ~Leitor() = default;
+        void ler(string filename, Grafo *g);
 };
 
 #endif

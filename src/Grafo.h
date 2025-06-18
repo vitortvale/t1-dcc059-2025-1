@@ -6,6 +6,7 @@
 #define GRAFO_H
 
 #include "No.h"
+
 #include <iostream>
 #include <vector>
 
@@ -28,14 +29,14 @@ public:
     vector<char> centro(); // h 3
     vector<char> periferia(); // h 4
     vector<char> vertices_de_articulacao(); // i
-
+    void add_no(No *p);
 
     int ordem;
     bool is_direcionado;
     bool is_ponderado_aresta;
     bool is_ponderado_vertice;
     vector<No*> lista_adj;
-    //implementar add no (push no vector)
+
 };
 
 

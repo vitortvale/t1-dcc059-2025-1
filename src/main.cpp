@@ -3,13 +3,18 @@
 #include "Leitor.h"
 
 
+
 using namespace std;
+
+
 int main(int argc, char *argv[])
 {
 
-    Grafo* grafo = new Grafo();
+    Leitor* leitor = new Leitor();
+    leitor->ler(argv[1]);
+    //Grafo* grafo = new Grafo(info);
 
-    Gerenciador::comandos(grafo);
+    //Gerenciador::comandos(grafo);
 
     return 0;
 }

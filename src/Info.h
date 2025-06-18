@@ -1,3 +1,6 @@
+#ifndef INFO_H
+#define INFO_h
+
 #include <iostream>
 #include "No.h"
 
@@ -10,3 +13,5 @@ typedef struct {
     bool is_ponderado_vertice;
     vector<No*> lista_adj;
 } Info;
+
+#endif
