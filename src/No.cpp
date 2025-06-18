@@ -1,11 +1,11 @@
 #include "No.h"
 
-No::No(int id, int peso) {
+No::No(char id, int peso) {
     this->id = id;
     this->peso = peso;
 }
 
-No::No(int id) {
+No::No(char id) {
     this->id = id;
 }
 

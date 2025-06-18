@@ -2,7 +2,6 @@
 #define LEITOR_H
 
 #include <iostream>
-#include "Info.h"
 #include "Grafo.h"
 
 using namespace std;

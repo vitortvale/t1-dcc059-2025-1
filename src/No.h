@@ -9,8 +9,8 @@
 using namespace std;
 class No {
 public:
-    No(int id, int peso);
-    No(int id);
+    No(char id, int peso);
+    No(char id);
     ~No() = default;
     void add_aresta(Aresta *a);
 
