@@ -1,51 +1,38 @@
 #include "Grafo.h"
-#include <algorithm> // Para usar std::find_if ou outros algoritmos se necessário
+#include <algorithm> // Para usar std::find_if, std::sort
+#include <iostream>  // Para std::cerr, std::cout, std::endl
+#include <set>       // Para o gerenciamento de memória no destrutor
+#include <queue>     // Para std::priority_queue em Dijkstra
+#include <stack>     // Para DFS iterativo
+#include <limits>    // Para std::numeric_limits<int>::max()
 
 Grafo::Grafo() :
-    ordem(0), // Inicializa a ordem como 0
+    ordem(0),
     is_direcionado(false),
     is_ponderado_aresta(false),
     is_ponderado_vertice(false) {
     // Construtor: Inicializa os membros.
-    // As flags serão setadas pelo Leitor.
 }
 
 Grafo::~Grafo() {
     // Destrutor: Libera a memória alocada dinamicamente para os Nós e Arestas.
-    // É CRUCIAL para evitar vazamentos de memória.
-
-    // Primeiro, liberar as Arestas
+    std::set<Aresta*> arestas_para_deletar;
     for (No* no : lista_adj) {
-        if (no) { // Verifica se o ponteiro não é nulo
-            // Itera sobre as arestas de cada nó e as deleta
-            // CUIDADO: Se o grafo não é direcionado, cada aresta será criada duas vezes
-            // (uma para cada sentido). Precisamos garantir que cada objeto Aresta
-            // seja deletado APENAS UMA VEZ.
-            // Uma abordagem é guardar ponteiros para as arestas em um conjunto global no Grafo,
-            // ou garantir que a Aresta não direcionada seja uma única instância.
-            // Para simplicidade inicial, vamos assumir que cada 'new Aresta'
-            // precisa ser deletado, o que implica que Arestas bidirecionais
-            // criam dois objetos Aresta distintos (A->B e B->A).
-            // Se você quiser otimizar isso, pode usar smart pointers ou um pool de arestas.
-
-            // ABORDAGEM SIMPLES (considera objetos Aresta distintos para A->B e B->A):
+        if (no) {
             for (Aresta* aresta : no->getArestas()) {
-                delete aresta; // Libera o objeto Aresta
+                arestas_para_deletar.insert(aresta);
             }
-            // Limpa o vetor de arestas do nó (opcional, mas boa prática)
-            // No::getArestas() retorna const&, então precisamos de um método não-const para clear
-            // OU No::arestas deve ser acessível aqui (o que é contra encapsulamento)
-            // Se getArestas() for const &, o destrutor precisaria de um método para limpar.
-            // Alternativa: no->arestas (se public) ou um no->clear_arestas();
         }
     }
+    for (Aresta* aresta : arestas_para_deletar) {
+        delete aresta;
+    }
+    arestas_para_deletar.clear();
 
-    // Segundo, liberar os Nós
     for (No* no : lista_adj) {
-        delete no; // Libera o objeto No
+        delete no;
     }
 
-    // Opcional: Limpar os vetores e mapas após liberar a memória
     lista_adj.clear();
     id_para_indice.clear();
     indice_para_id.clear();
@@ -55,126 +42,359 @@ Grafo::~Grafo() {
 // --- Métodos de Adição de Nós e Arestas ---
 
 void Grafo::add_no(No *novo_no) {
-    // Verifica se o nó já existe no grafo pelo ID
     if (id_para_indice.count(novo_no->getId()) > 0) {
-        std::cerr << "Erro: Nó com ID '" << novo_no->getId() << "' já existe no grafo." << std::endl;
-        delete novo_no; // Evita vazamento de memória se o nó já existe
+        std::cerr << "Erro: Nó com ID '" << novo_no->getId() << "' já existe no grafo. Não adicionado." << std::endl;
+        delete novo_no;
         return;
     }
 
-    // Atribui o índice interno ao nó
     int novo_indice = lista_adj.size();
-    // novo_no->setIndiceInterno(novo_indice); // Se você adicionar um setter para indice_interno em No
-    // No construtor de No, já passamos o indice_interno.
-    // Apenas confirme que o No foi criado com o indice correto antes de chamar add_no.
-    // Se o No foi criado com o índice, não é necessário setar novamente aqui.
+    novo_no->setIndiceInterno(novo_indice);
 
-    lista_adj.push_back(novo_no); // Adiciona o ponteiro do nó ao vector principal
-    id_para_indice[novo_no->getId()] = novo_indice; // Mapeia ID para índice
-    indice_para_id.push_back(novo_no->getId()); // Mapeia índice para ID
-    ordem++; // Incrementa a ordem do grafo
+    lista_adj.push_back(novo_no);
+    id_para_indice[novo_no->getId()] = novo_indice;
+    indice_para_id.push_back(novo_no->getId());
+    ordem++;
 }
 
 void Grafo::add_aresta(char id_origem, char id_destino, int peso_aresta) {
-    // 1. Obter os nós de origem e destino usando os IDs
-    int indice_origem = getIndiceDoId(id_origem);
-    int indice_destino = getIndiceDoId(id_destino);
+    No* no_origem = getNo(id_origem);
+    No* no_destino = getNo(id_destino);
 
-    if (indice_origem == -1 || indice_destino == -1) {
-        std::cerr << "Erro: Tentativa de adicionar aresta com ID(s) de nó inválido(s)." << std::endl;
+    if (no_origem == nullptr || no_destino == nullptr) {
+        std::cerr << "Erro: Tentativa de adicionar aresta com ID(s) de nó inválido(s) ("
+                  << id_origem << " ou " << id_destino << " não encontrados)." << std::endl;
         return;
     }
 
-    No* no_origem = lista_adj[indice_origem];
-    No* no_destino = lista_adj[indice_destino];
-
-    // 2. Criar e adicionar a aresta (No_Origem -> No_Destino)
-    // A Aresta agora recebe um ponteiro para o No alvo
-    Aresta* aresta_saida = new Aresta(no_destino, peso_aresta);
-    no_origem->add_aresta(aresta_saida);
-    std::cout << "Aresta adicionada: " << no_origem->getId() << " -> " << no_destino->getId();
-    if (is_ponderado_aresta) {
-        std::cout << " (peso: " << peso_aresta << ")";
+    bool aresta_ja_existe = false;
+    for(Aresta* a : no_origem->getArestas()){
+        if(a->getNoAlvo()->getId() == id_destino){
+            aresta_ja_existe = true;
+            break;
+        }
     }
-    std::cout << std::endl;
 
+    if (!aresta_ja_existe) {
+        Aresta* aresta_saida = new Aresta(no_destino, peso_aresta);
+        no_origem->add_aresta(aresta_saida);
 
-    // 3. Se o grafo não for direcionado, adicionar a aresta inversa (No_Destino -> No_Origem)
-    if (!is_direcionado) {
-        Aresta* aresta_entrada = new Aresta(no_origem, peso_aresta);
-        no_destino->add_aresta(aresta_entrada);
-        std::cout << "Aresta reversa adicionada: " << no_destino->getId() << " -> " << no_origem->getId();
+        std::cout << "Aresta adicionada: " << no_origem->getId() << " -> " << no_destino->getId();
         if (is_ponderado_aresta) {
             std::cout << " (peso: " << peso_aresta << ")";
         }
         std::cout << std::endl;
+
+        if (!is_direcionado) {
+            bool aresta_inversa_ja_existe = false;
+            for(Aresta* a : no_destino->getArestas()){
+                if(a->getNoAlvo()->getId() == id_origem){
+                    aresta_inversa_ja_existe = true;
+                    break;
+                }
+            }
+            if (!aresta_inversa_ja_existe) {
+                Aresta* aresta_entrada = new Aresta(no_origem, peso_aresta);
+                no_destino->add_aresta(aresta_entrada);
+                std::cout << "Aresta reversa adicionada: " << no_destino->getId() << " -> " << no_origem->getId();
+                if (is_ponderado_aresta) {
+                    std::cout << " (peso: " << peso_aresta << ")";
+                }
+                std::cout << std::endl;
+            }
+        }
+    } else {
+        std::cout << "Aresta " << id_origem << " -> " << id_destino << " já existe. Não adicionada novamente." << std::endl;
     }
 }
 
+
 // --- Métodos Auxiliares de Mapeamento ---
 
-int Grafo::getIndiceDoId(char id) {
+int Grafo::getIndiceDoId(char id) const {
     auto it = id_para_indice.find(id);
     if (it != id_para_indice.end()) {
         return it->second;
     }
-    return -1; // Retorna -1 se o ID não for encontrado
+    return -1;
 }
 
-char Grafo::getIdDoIndice(int indice) {
-    if (indice >= 0 && indice < indice_para_id.size()) {
+char Grafo::getIdDoIndice(int indice) const {
+    if (indice >= 0 && indice < static_cast<int>(indice_para_id.size())) { // Corrigido warning
         return indice_para_id[indice];
     }
-    // Lidar com erro ou retornar um valor padrão, como '\0' ou lançar exceção
     std::cerr << "Erro: Índice de nó inválido: " << indice << std::endl;
-    return '\0'; // Retorna um caractere nulo para indicar erro
+    return '\0';
 }
 
 // --- Métodos Getters ---
 
-No* Grafo::getNo(char id) {
+No* Grafo::getNo(char id) const {
     int indice = getIndiceDoId(id);
     if (indice != -1) {
         return lista_adj[indice];
     }
-    return nullptr; // Retorna nullptr se o nó não for encontrado
+    return nullptr;
 }
 
-No* Grafo::getNoPorIndice(int indice) {
-    if (indice >= 0 && indice < lista_adj.size()) {
+No* Grafo::getNoPorIndice(int indice) const {
+    if (indice >= 0 && indice < static_cast<int>(lista_adj.size())) { // Corrigido warning
         return lista_adj[indice];
     }
-    return nullptr; // Retorna nullptr se o índice for inválido
+    return nullptr;
 }
 
-// --- Implementações de Funcionalidades (Stubs permanecem por enquanto) ---
+
+// --- Implementações de Funcionalidades para Fecho Transitivo ---
+
+void Grafo::dfs_recursiva(No* no_atual, std::map<char, bool>& visitado, std::vector<char>& resultado) {
+    visitado[no_atual->getId()] = true;
+    resultado.push_back(no_atual->getId());
+
+    for (Aresta* aresta : no_atual->getArestas()) {
+        No* vizinho = aresta->getNoAlvo();
+        if (!visitado[vizinho->getId()]) {
+            dfs_recursiva(vizinho, visitado, resultado);
+        }
+    }
+}
 
 std::vector<char> Grafo::fecho_transitivo_direto(char id_no) {
-    std::cout << "Metodo fecho_transitivo_direto nao implementado" << std::endl;
-    return {};
+    No* inicio = getNo(id_no);
+    if (inicio == nullptr) {
+        std::cerr << "Erro: Nó de início '" << id_no << "' não encontrado para fecho transitivo direto." << std::endl;
+        return {};
+    }
+
+    std::map<char, bool> visitado;
+    for (No* no : lista_adj) {
+        visitado[no->getId()] = false;
+    }
+
+    std::vector<char> resultado;
+    dfs_recursiva(inicio, visitado, resultado);
+
+    std::sort(resultado.begin(), resultado.end());
+    return resultado;
+}
+
+Grafo* Grafo::getGrafoTransposto() const {
+    Grafo* grafo_transposto = new Grafo();
+    grafo_transposto->setDirecionado(true); // Um grafo transposto é sempre direcionado
+    grafo_transposto->setPonderadoAresta(is_ponderado_aresta);
+    grafo_transposto->setPonderadoVertice(is_ponderado_vertice);
+
+    for (No* original_no : lista_adj) {
+        No* novo_no = new No(original_no->getId(), original_no->getPeso());
+        grafo_transposto->add_no(novo_no);
+    }
+
+    for (No* original_no : lista_adj) {
+        for (Aresta* original_aresta : original_no->getArestas()) {
+            char id_origem_transposto = original_aresta->getNoAlvo()->getId();
+            char id_destino_transposto = original_no->getId();
+            int peso_aresta_transposto = original_aresta->getPeso();
+            grafo_transposto->add_aresta(id_origem_transposto, id_destino_transposto, peso_aresta_transposto);
+        }
+    }
+    return grafo_transposto;
 }
 
 std::vector<char> Grafo::fecho_transitivo_indireto(char id_no) {
-    std::cout << "Metodo fecho_transitivo_indireto nao implementado" << std::endl;
-    return {};
+    Grafo* grafo_transposto = getGrafoTransposto();
+    std::vector<char> resultado = grafo_transposto->fecho_transitivo_direto(id_no);
+    delete grafo_transposto;
+    std::sort(resultado.begin(), resultado.end());
+    return resultado;
 }
 
+// --- Implementação do Caminho Mínimo (Dijkstra) (c) ---
 std::vector<char> Grafo::caminho_minimo_dijkstra(char id_no_a, char id_no_b) {
-    std::cout << "Metodo caminho_minimo_dijkstra nao implementado" << std::endl;
-    return {};
+    if (!is_ponderado_aresta) {
+        std::cerr << "Erro: Dijkstra requer um grafo ponderado nas arestas." << std::endl;
+        return {};
+    }
+
+    No* inicio_no = getNo(id_no_a);
+    No* fim_no = getNo(id_no_b);
+
+    if (inicio_no == nullptr || fim_no == nullptr) {
+        std::cerr << "Erro: Nó(s) de início/destino inválido(s) para Dijkstra." << std::endl;
+        return {};
+    }
+
+    std::map<char, int> dist;
+    std::map<char, char> predecessores;
+    std::priority_queue<DistanciaNo, std::vector<DistanciaNo>, std::greater<DistanciaNo>> pq;
+
+    for (No* no : lista_adj) {
+        dist[no->getId()] = std::numeric_limits<int>::max();
+        predecessores[no->getId()] = '\0';
+    }
+    dist[inicio_no->getId()] = 0;
+    pq.push({0, inicio_no->getId()});
+
+    while (!pq.empty()) {
+        DistanciaNo atual = pq.top();
+        pq.pop();
+
+        int d_atual = atual.distancia;
+        char id_u = atual.id_no;
+
+        if (d_atual > dist[id_u]) {
+            continue;
+        }
+
+        No* u_no = getNo(id_u);
+        for (Aresta* aresta : u_no->getArestas()) {
+            No* v_no = aresta->getNoAlvo();
+            char id_v = v_no->getId();
+            int peso_uv = aresta->getPeso();
+
+            if (dist[id_u] != std::numeric_limits<int>::max() && dist[id_u] + peso_uv < dist[id_v]) {
+                dist[id_v] = dist[id_u] + peso_uv;
+                predecessores[id_v] = id_u;
+                pq.push({dist[id_v], id_v});
+            }
+        }
+    }
+
+    std::vector<char> caminho;
+    char no_atual_caminho = fim_no->getId();
+    
+    // Verifica se o nó de destino foi alcançado
+    if (dist[no_atual_caminho] == std::numeric_limits<int>::max()) {
+        std::cout << "Caminho de " << id_no_a << " para " << id_no_b << " nao encontrado (distancia infinita)." << std::endl;
+        return {};
+    }
+
+    // Reconstroi o caminho
+    while (no_atual_caminho != '\0') {
+        caminho.insert(caminho.begin(), no_atual_caminho);
+        if (no_atual_caminho == inicio_no->getId()) {
+            break;
+        }
+        no_atual_caminho = predecessores[no_atual_caminho];
+    }
+    
+    // Verificação adicional para garantir que o caminho começa no nó de origem
+    if (caminho.empty() || caminho[0] != inicio_no->getId()) {
+        std::cout << "Caminho de " << id_no_a << " para " << id_no_b << " nao encontrado (problema na reconstrucao ou inicio)." << std::endl;
+        return {};
+    }
+
+    std::cout << "Custo do caminho de " << id_no_a << " para " << id_no_b << ": " << dist[fim_no->getId()] << std::endl;
+    return caminho;
 }
 
+// --- Funções Auxiliares para Floyd-Warshall ---
+std::vector<std::vector<int>> Grafo::inicializar_matriz_adjacencia_com_pesos() {
+    int num_vertices = ordem;
+    std::vector<std::vector<int>> dist(num_vertices, std::vector<int>(num_vertices, std::numeric_limits<int>::max()));
+
+    for (int i = 0; i < num_vertices; ++i) {
+        dist[i][i] = 0; // Distância de um nó para ele mesmo é 0
+    }
+
+    for (No* u_no : lista_adj) {
+        int u_idx = u_no->getIndiceInterno();
+        for (Aresta* aresta : u_no->getArestas()) {
+            No* v_no = aresta->getNoAlvo();
+            int v_idx = v_no->getIndiceInterno();
+            if (u_idx != -1 && v_idx != -1) { // Garante que os índices são válidos
+                 dist[u_idx][v_idx] = aresta->getPeso();
+            }
+        }
+    }
+    return dist;
+}
+
+
+// --- Implementação do Caminho Mínimo (Floyd-Warshall) (d) ---
 std::vector<char> Grafo::caminho_minimo_floyd(char id_no_a, char id_no_b) {
-    std::cout << "Metodo caminho_minimo_floyd nao implementado" << std::endl;
-    return {};
+    if (!is_ponderado_aresta) {
+        std::cerr << "Erro: Floyd requer um grafo ponderado nas arestas." << std::endl;
+        return {};
+    }
+
+    int inicio_idx = getIndiceDoId(id_no_a);
+    int fim_idx = getIndiceDoId(id_no_b);
+
+    if (inicio_idx == -1 || fim_idx == -1) {
+        std::cerr << "Erro: Nó(s) de início/destino inválido(s) para Floyd." << std::endl;
+        return {};
+    }
+
+    int num_vertices = ordem;
+    std::vector<std::vector<int>> dist = inicializar_matriz_adjacencia_com_pesos();
+    
+    // Matriz next_node para reconstrução do caminho: next_node[i][j] armazena o próximo nó
+    // no caminho mais curto de i para j. Inicialmente, se há aresta i->j, é j.
+    std::vector<std::vector<int>> next_node(num_vertices, std::vector<int>(num_vertices, -1));
+    for (int i = 0; i < num_vertices; ++i) {
+        for (int j = 0; j < num_vertices; ++j) {
+            if (dist[i][j] != std::numeric_limits<int>::max() && i != j) {
+                next_node[i][j] = j; // Se há uma aresta direta, o próximo é o próprio destino
+            }
+        }
+    }
+
+    // Algoritmo de Floyd-Warshall
+    for (int k = 0; k < num_vertices; ++k) {
+        for (int i = 0; i < num_vertices; ++i) {
+            for (int j = 0; j < num_vertices; ++j) {
+                // Evita overflow (INF + valor) e garante que o caminho via k é válido
+                if (dist[i][k] != std::numeric_limits<int>::max() &&
+                    dist[k][j] != std::numeric_limits<int>::max()) {
+                    if (dist[i][k] + dist[k][j] < dist[i][j]) {
+                        dist[i][j] = dist[i][k] + dist[k][j];
+                        next_node[i][j] = next_node[i][k]; // O próximo de i para j é o próximo de i para k
+                    }
+                }
+            }
+        }
+    }
+
+    // Verificação de ciclos negativos (dist[i][i] < 0) - importante para a corretude
+    for (int i = 0; i < num_vertices; ++i) {
+        if (dist[i][i] < 0) {
+            std::cerr << "Ciclo negativo detectado no grafo! Caminhos minimos podem ser indefinidos." << std::endl;
+            return {}; // Retorna vazio se houver ciclo negativo
+        }
+    }
+
+    // Reconstruir o caminho
+    std::vector<char> caminho_final;
+    if (dist[inicio_idx][fim_idx] == std::numeric_limits<int>::max()) {
+        std::cout << "Caminho de " << id_no_a << " para " << id_no_b << " nao encontrado (distancia infinita)." << std::endl;
+        return {};
+    }
+
+    std::cout << "Custo do caminho de " << id_no_a << " para " << id_no_b << ": " << dist[inicio_idx][fim_idx] << std::endl;
+
+    // Reconstrução do caminho usando next_node
+    int current_node_idx = inicio_idx;
+    while (current_node_idx != fim_idx) {
+        caminho_final.push_back(getIdDoIndice(current_node_idx));
+        current_node_idx = next_node[current_node_idx][fim_idx];
+        if (current_node_idx == -1) { // Caso não deveria acontecer se o caminho foi encontrado
+             std::cerr << "Erro na reconstrucao do caminho Floyd (next_node inválido)." << std::endl;
+             return {};
+        }
+    }
+    caminho_final.push_back(getIdDoIndice(fim_idx)); // Adiciona o nó final
+
+    return caminho_final;
 }
 
-Grafo * Grafo::arvore_geradora_minima_prim(std::vector<char> ids_nos) {
+
+// --- Outras funcionalidades (Stubs permanecem) ---
+Grafo * Grafo::arvore_geradora_minima_prim(const std::vector<char>& ids_nos) {
     std::cout << "Metodo arvore_geradora_minima_prim nao implementado" << std::endl;
     return nullptr;
 }
 
-Grafo * Grafo::arvore_geradora_minima_kruskal(std::vector<char> ids_nos) {
+Grafo * Grafo::arvore_geradora_minima_kruskal(const std::vector<char>& ids_nos) {
     std::cout << "Metodo arvore_geradora_minima_kruskal nao implementado" << std::endl;
     return nullptr;
 }

@@ -2,64 +2,85 @@
 #define GRAFO_H
 
 #include "No.h" // Inclui a definição da classe No
-#include <iostream>
 #include <vector>
-#include <map>    // Para o mapeamento de char ID para int índice
-#include <string> // Pode ser útil se IDs complexos forem usados, mas char está ok por enquanto
-
-// Evitar 'using namespace std;' em arquivos .h
-// class Grafo { ... };
+#include <map>
+#include <string>
+#include <set>       // Para o gerenciamento de memória no destrutor
+#include <limits>    // Para std::numeric_limits<int>::max() em Dijkstra/Floyd
+#include <queue>     // Para std::priority_queue em Dijkstra
 
 class Grafo {
 public:
-    // Construtor: Inicializa flags e mapeamentos
+    // Construtor
     Grafo();
 
-    // Destrutor: Responsável por liberar a memória alocada para os Nós e Arestas
+    // Destrutor: Libera a memória alocada para os Nós e Arestas
     ~Grafo();
 
     // Métodos para adicionar nós e arestas
     void add_no(No *novo_no);
-    // Adiciona uma aresta entre dois nós. O peso é opcional e default para 0.
     void add_aresta(char id_origem, char id_destino, int peso_aresta = 0);
 
-    // Métodos de funcionalidades (assinaturas atualizadas para usar char id)
-    // O retorno pode ser ajustado para incluir mais informações se necessário (ex: caminho, custo)
+    // Métodos de funcionalidades
     std::vector<char> fecho_transitivo_direto(char id_no); // a
     std::vector<char> fecho_transitivo_indireto(char id_no); // b
     std::vector<char> caminho_minimo_dijkstra(char id_no_a, char id_no_b); // c
-    std::vector<char> caminho_minimo_floyd(char id_no_a, char id_no_b); // d - corrigido id_no_b
-    Grafo* arvore_geradora_minima_prim(std::vector<char> ids_nos); // e
-    Grafo* arvore_geradora_minima_kruskal(std::vector<char> ids_nos); // f
+    std::vector<char> caminho_minimo_floyd(char id_no_a, char id_no_b); // d
+    Grafo* arvore_geradora_minima_prim(const std::vector<char>& ids_nos); // e
+    Grafo* arvore_geradora_minima_kruskal(const std::vector<char>& ids_nos); // f
     Grafo* arvore_caminhamento_profundidade(char id_no); // g
     int raio(); // h 1
     int diametro(); // h 2
     std::vector<char> centro(); // h 3
     std::vector<char> periferia(); // h 4
-    std::vector<char> vertices_de_articulacao(); // i (Adicionado, mas não pedido na lista inicial do trabalho)
+    std::vector<char> vertices_de_articulacao(); // i
 
-    // Métodos getters para as propriedades do grafo (Leitor pode usá-las para configurar)
+    // Métodos setters para as propriedades do grafo
+    void setDirecionado(bool b) { is_direcionado = b; }
+    void setPonderadoAresta(bool b) { is_ponderado_aresta = b; }
+    void setPonderadoVertice(bool b) { is_ponderado_vertice = b; }
+
+    // Métodos getters para as propriedades do grafo
     bool isDirecionado() const { return is_direcionado; }
     bool isPonderadoAresta() const { return is_ponderado_aresta; }
     bool isPonderadoVertice() const { return is_ponderado_vertice; }
     int getOrdem() const { return ordem; }
-    No* getNo(char id); // Retorna o ponteiro para um No dado seu ID
-    No* getNoPorIndice(int indice); // Retorna o ponteiro para um No dado seu índice
+    No* getNo(char id) const;
+    No* getNoPorIndice(int indice) const;
 
-    // Atributos do grafo
-    int ordem; // Número de vértices do grafo
+private:
+    int ordem;
     bool is_direcionado;
     bool is_ponderado_aresta;
     bool is_ponderado_vertice;
 
-private:
-    std::vector<No*> lista_adj; // Lista de adjacência principal: vector de ponteiros para Nós
-    std::map<char, int> id_para_indice; // Mapeia o ID char do vértice para seu índice no lista_adj
-    std::vector<char> indice_para_id; // Mapeia o índice para o ID char (útil para resultados)
+    std::vector<No*> lista_adj;
+    std::map<char, int> id_para_indice;
+    std::vector<char> indice_para_id;
 
     // Funções auxiliares para buscar nós por ID (internas)
-    int getIndiceDoId(char id);
-    char getIdDoIndice(int indice);
+    int getIndiceDoId(char id) const;
+    char getIdDoIndice(int indice) const;
+
+    // Função auxiliar para DFS (usada para fecho transitivo)
+    void dfs_recursiva(No* no_atual, std::map<char, bool>& visitado, std::vector<char>& resultado);
+
+    // Função auxiliar para criar grafo transposto
+    Grafo* getGrafoTransposto() const;
+
+    // --- Novas adições para Dijkstra e Floyd ---
+    // Estrutura para a fila de prioridade de Dijkstra
+    struct DistanciaNo {
+        int distancia;
+        char id_no;
+        bool operator>(const DistanciaNo& other) const {
+            return distancia > other.distancia;
+        }
+    };
+
+    // Funções auxiliares para Floyd-Warshall
+    // O retorno pode ser `std::vector<std::vector<long long>>` para evitar overflow com INF + valor
+    std::vector<std::vector<int>> inicializar_matriz_adjacencia_com_pesos();
 };
 
 #endif // GRAFO_H

@@ -1,5 +1,4 @@
 #include "Leitor.h"
-#include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
@@ -7,108 +6,78 @@
 #include "No.h"
 #include "Grafo.h"
 
-using namespace std;
-
 Leitor::Leitor() {
-
 }
 
-void Leitor::ler(string filename,Grafo *g) {
-     ifstream arquivo(filename);
-     if (!arquivo.is_open()) {
-        cerr << "Erro ao abrir o arquivo: " << filename << endl;
+void Leitor::ler(std::string filename, Grafo *g) {
+    std::ifstream arquivo(filename);
+    if (!arquivo.is_open()) {
+        std::cerr << "Erro ao abrir o arquivo: " << filename << std::endl;
         return;
     }
 
-    int direcionado, ponderadoVertices, ponderadoArestas;
+    int direcionado_val, ponderadoVertices_val, ponderadoArestas_val;
     int numVertices;
 
-    arquivo >> direcionado >> ponderadoVertices >> ponderadoArestas;
+    arquivo >> direcionado_val >> ponderadoVertices_val >> ponderadoArestas_val;
     arquivo >> numVertices;
     arquivo.ignore();
 
-    cout << "Lendo informacoes do grafo..." << endl;    
-    if(direcionado = 1) {
-        g->is_direcionado = true; 
-        cout << "Grafo direcionado" << endl;
-    }
-    else {
-        g->is_direcionado = false;
-        cout << "Grafo nao direcionado" << endl;
+    std::cout << "Lendo informacoes do grafo..." << std::endl;
 
-    }
-     if(direcionado = 1) {
-         g->is_ponderado_vertice = true; 
-        cout << "Grafo ponderado nos vertices" << endl;
-    }
-    else {
-        g->is_ponderado_vertice = false;
-        cout << "Grafo nao ponderado nos vertices" << endl;
+    // CORREÇÃO: Usar '==' para comparação e setters
+    g->setDirecionado(direcionado_val == 1);
+    std::cout << "Grafo " << (g->isDirecionado() ? "direcionado" : "nao direcionado") << std::endl;
 
-    }
-     if(direcionado = 1) {
-        g->is_ponderado_aresta = true;
-        cout << "Grafo ponderado nas arestas" << endl;
-    }
-    else {
-        g->is_ponderado_aresta = false;
-        cout << "Grafo nao ponderado nas arestas" << endl;
+    g->setPonderadoVertice(ponderadoVertices_val == 1);
+    std::cout << "Grafo " << (g->isPonderadoVertice() ? "ponderado nos vertices" : "nao ponderado nos vertices") << std::endl;
 
-    }
-    cout << "Número de vértices: " << numVertices << "\n\n";
+    g->setPonderadoAresta(ponderadoArestas_val == 1);
+    std::cout << "Grafo " << (g->isPonderadoAresta() ? "ponderado nas arestas" : "nao ponderado nas arestas") << std::endl;
 
-    cout << "Vértices lidos:\n";
+    std::cout << "Numero de vertices: " << numVertices << "\n\n";
+
+    std::cout << "Vertices lidos:\n";
     for (int i = 0; i < numVertices; ++i) {
-        string linha;
-        getline(arquivo, linha);
-        istringstream iss(linha);
+        std::string linha;
+        std::getline(arquivo, linha);
+        std::istringstream iss(linha);
 
         char id;
         int peso = 0;
+
         iss >> id;
 
-        if (ponderadoVertices) {
+        if (g->isPonderadoVertice()) {
             iss >> peso;
             No *n = new No(id, peso);
-            cout << "No criado! id: " << id << " (peso: " << peso << ")\n";
+            std::cout << "No criado! id: " << id << " (peso: " << peso << ")\n";
             g->add_no(n);
-
         } else {
             No *n = new No(id);
-            cout << "No criado! id: " << id << "\n";
+            std::cout << "No criado! id: " << id << "\n";
             g->add_no(n);
         }
     }
 
-    cout << "\nArestas lidas:\n";
-    string linha;
-    while (getline(arquivo, linha)) {
-        if (linha.empty()) continue;
+    std::cout << "\nArestas lidas:\n";
+    std::string linha_aresta;
+    while (std::getline(arquivo, linha_aresta)) {
+        if (linha_aresta.empty()) continue;
 
-        istringstream iss(linha);
+        std::istringstream iss_aresta(linha_aresta);
         char origem, destino;
         int peso = 0;
 
-        iss >> origem >> destino;
-        if (ponderadoArestas) {
-            iss >> peso;
-            cout << "  " << origem << " -> " << destino << " (peso: " << peso << ")\n";
-            if (direcionado) {
-                //Adiciona a aresta apenas no No origem
-            }
-            else {
-                //Adiciona a aresta para ambos os nos
-            }
+        iss_aresta >> origem >> destino;
+        if (g->isPonderadoAresta()) {
+            iss_aresta >> peso;
+            std::cout << "   " << origem << " -> " << destino << " (peso: " << peso << ")\n";
+            g->add_aresta(origem, destino, peso);
         } else {
-            cout << "  " << origem << " -> " << destino << "\n";
-            if (direcionado) {
-                //Adiciona a aresta apenas no No origem
-            }
-            else {
-               //Adiciona a aresta para ambos os nos
-            }
+            std::cout << "   " << origem << " -> " << destino << "\n";
+            g->add_aresta(origem, destino);
         }
-    };
-
+    }
+    arquivo.close();
 }
-

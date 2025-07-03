@@ -2,17 +2,18 @@
 #define GERENCIADOR_H
 
 #include <iostream>
-#include "Grafo.h"
-#include <algorithm>
+#include <vector>
+#include <string>
+#include <algorithm> // Para std::find
+#include "Grafo.h"   // Inclui Grafo.h
 
-using namespace std;
+// Evitar 'using namespace std;' em arquivos .h
 class Gerenciador {
 public:
     static void comandos(Grafo* grafo);
     static char get_id_entrada();
-    static vector<char> get_conjunto_ids(Grafo* grafo, int tam);
-    static bool pergunta_imprimir_arquivo(string nome_arquivo);
+    static std::vector<char> get_conjunto_ids(Grafo* grafo, int tam);
+    static bool pergunta_imprimir_arquivo(std::string nome_arquivo);
 };
-
 
 #endif //GERENCIADOR_H

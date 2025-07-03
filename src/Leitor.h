@@ -2,15 +2,17 @@
 #define LEITOR_H
 
 #include <iostream>
-#include "Grafo.h"
+#include <string> // Para std::string
+#include "Grafo.h" // Inclui Grafo.h
 
-using namespace std;
+// Evitar 'using namespace std;' em arquivos .h
+// class Leitor { ... };
 
 class Leitor {
-    public:
-        Leitor();
-        ~Leitor() = default;
-        void ler(string filename, Grafo *g);
+public:
+    Leitor();
+    ~Leitor() = default;
+    void ler(std::string filename, Grafo *g);
 };
 
-#endif
+#endif // LEITOR_H

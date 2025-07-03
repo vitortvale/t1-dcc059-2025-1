@@ -1,5 +1,5 @@
 #include "Aresta.h"
-#include "No.h" 
+#include "No.h" // Necessário para a definição completa de No
 
 // Construtor para arestas não ponderadas
 Aresta::Aresta(No* no_alvo_ptr) : no_alvo_ptr(no_alvo_ptr), peso(0) {
