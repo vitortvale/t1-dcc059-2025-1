@@ -92,6 +92,13 @@ private:
         }
     };
 
+    // ENUM PARA CONTROLAR OS 3 ESTADOS DA VISITAÇÃO DO DFS
+    enum StatusVisita { NAO_VISITADO, VISITANDO, VISITADO };
+
+    // NOVA FUNÇÃO AUXILIAR PARA A LETRA G
+    void dfs_para_arvore_com_retorno(char id_no_atual, Grafo* arvore, std::map<char, StatusVisita>& status);
+    
+
     
 
 
