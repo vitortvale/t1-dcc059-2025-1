@@ -6,6 +6,7 @@
 #include <stack>     // Para DFS iterativo
 #include <limits>    // Para std::numeric_limits<int>::max()
 
+
 Grafo::Grafo() :
     ordem(0),
     is_direcionado(false),
@@ -394,14 +395,125 @@ Grafo * Grafo::arvore_geradora_minima_prim(const std::vector<char>& ids_nos) {
     return nullptr;
 }
 
-Grafo * Grafo::arvore_geradora_minima_kruskal(const std::vector<char>& ids_nos) {
-    std::cout << "Metodo arvore_geradora_minima_kruskal nao implementado" << std::endl;
-    return nullptr;
+//******************************************************************************
+//------------------------------------------------------------------------------
+// ------------- LETRA F - ÁRVORE GERADORA MÍNIMA (KRUSKAL) --------------------
+//------------------------------------------------------------------------------
+//******************************************************************************
+// ESTRUTURA STRUCT AUXILIAR PARA A LETRA F
+struct ArestaKruskal {
+    char origem, destino;
+    int peso;
+    bool operator<(const ArestaKruskal& outra) const {
+        return peso < outra.peso;
+    }
+};
+//******************************************************************************
+Grafo* Grafo::arvore_geradora_minima_kruskal(const std::vector<char>& ids_nos) {
+    // 1. CRIA O GRAFO RESULTANTE (A FUTURA AGM OU FLORESTA)
+    Grafo* agm = new Grafo();
+    agm->setDirecionado(false);      // USA O MÉTODO 'setDirecionado' 
+    agm->setPonderadoAresta(true); // USA O MÉTODO 'setPonderadoAresta' 
+
+    if (ids_nos.size() < 2) {
+        for(char id : ids_nos) {
+            // USA O MÉTODO 'add_no' E 'getNo' 
+            agm->add_no(this->getNo(id));
+        }
+        return agm;
+    }
+
+    // --- 2. COLETA E FILTRA AS ARESTAS QUE PERTENCEM AO SUBGRAFO ---
+    std::vector<ArestaKruskal> arestas_subgrafo;
+    std::set<char> subconjunto_nos(ids_nos.begin(), ids_nos.end());
+
+    for (char id_no : ids_nos) {
+        // USA O MÉTODO 'getNo' 
+        No* no_atual = this->getNo(id_no);
+        if (no_atual) {
+            for (const auto& aresta : no_atual->getArestas()) {
+                No* no_vizinho = aresta->getNoAlvo();
+                if (subconjunto_nos.count(no_vizinho->getId())) {
+                    if (id_no < no_vizinho->getId()) {
+                        arestas_subgrafo.push_back({id_no, no_vizinho->getId(), aresta->getPeso()});
+                    }
+                }
+            }
+        }
+    }
+
+    // --- 3. ORDENA AS ARESTAS VÁLIDAS POR PESO ---
+    std::sort(arestas_subgrafo.begin(), arestas_subgrafo.end());
+
+    // --- 4. CONSTRÓI A AGM ---
+    for(char id : ids_nos) {
+        // USA O MÉTODO 'add_no' E 'getNo' 
+        agm->add_no(this->getNo(id));
+    }
+
+    for (const auto& aresta : arestas_subgrafo) {
+        // USA A FUNÇÃO AUXILIAR 'existe_caminho' 
+        if (!agm->existe_caminho(aresta.origem, aresta.destino)) {
+            // USA O MÉTODO 'add_aresta' 
+            agm->add_aresta(aresta.origem, aresta.destino, aresta.peso);
+        }
+    }
+
+    return agm;
+}
+//******************************************************************************
+// FUNÇÕES AUXILIARES PARA DETECÇÃO DE CICLO 
+//******************************************************************************
+bool Grafo::existe_caminho(char id_origem, char id_destino) {
+    if (getNo(id_origem) == nullptr || getNo(id_destino) == nullptr) {
+        return false;
+    }
+    std::map<char, bool> visitados;
+    // CHAMA A FUNÇÃO RECURSIVA DECLARADA EM GRAFO.H
+    return dfs_existe_caminho(id_origem, id_destino, visitados);
 }
 
+bool Grafo::dfs_existe_caminho(char id_atual, char id_destino, std::map<char, bool>& visitados) {
+    if (id_atual == id_destino) return true;
+    visitados[id_atual] = true;
 
+    No* no_atual = getNo(id_atual);
+    if (no_atual) {
+        for (const auto& aresta : no_atual->getArestas()) {
+            char id_vizinho = aresta->getNoAlvo()->getId();
+            if (!visitados[id_vizinho]) {
+                if (dfs_existe_caminho(id_vizinho, id_destino, visitados)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+//******************************************************************************
+// IMPLEMENTAÇÃO DA FUNÇÃO DE IMPRESSÃO 
+//******************************************************************************
+void Grafo::imprimir_grafo_letra_f(std::ostream& out) const {
+    out << "--- Conteudo do Grafo (Lista de Adjacencia) ---" << std::endl;
+    // USA O GETTER QUE JÁ EXISTE PARA ACESSAR A LISTA DE NÓS
+    for (const auto& no_atual : this->getListaAdj()) {
+        if (no_atual) {
+            out << "No " << no_atual->getId() << ": ";
+            // PERCORRE TODAS AS ARESTAS DO NÓ ATUAL
+            for (const auto& aresta : no_atual->getArestas()) {
+                if (aresta && aresta->getNoAlvo()) {
+                    // IMPRIME O VIZINHO E O PESO DA ARESTA
+                    out << "-> [" << aresta->getNoAlvo()->getId() << " (Peso: " << aresta->getPeso() << ")] ";
+                }
+            }
+            out << std::endl;
+        }
+    }
+    out << "----------------------------------------------------" << std::endl;
+}
+//******************************************************************************
 //------------------------------------------------------------------------------
-// ----------------------------------- G ---------------------------------------
+// ---------- LETRA G - ARVORE DADA PELA BUSCA EM PROFUNDIDADE -----------------
 //------------------------------------------------------------------------------
 // GERA UMA ÁRVORE DE CAMINHAMENTO EM PROFUNDIDADE E DESTACA AS ARESTAS DE RETORNO.
 // RETORNA UM NOVO GRAFO QUE REPRESENTA A ÁRVORE.
@@ -473,8 +585,9 @@ void Grafo::dfs_para_arvore_com_retorno(char id_no_atual, Grafo* arvore, std::ma
     // ATUALIZA SEU STATUS PARA 'VISITADO'.
     status[id_no_atual] = VISITADO;
 }
+//******************************************************************************
 //------------------------------------------------------------------------------
-// ----------------------------------- H ---------------------------------------
+// ------- LETRA H - RAIO, DIAMETRO, CENTRO E PERIFERIA DO GRAFO ---------------
 //------------------------------------------------------------------------------
 // PARÂMETRO --> O GRAFO (DIRECIONADO OU NÃO DIRECIONADO) PONDERADO NAS ARESTAS
 // SAÍDA --> O RAIO, O DIÂMETRO, O CENTRO E A PERIFERIA DO GRAFO.

@@ -180,8 +180,10 @@ void Gerenciador::comandos(Grafo* grafo) {
                 if (tam > 0 && tam <= grafo->getOrdem()) {
                     std::vector<char> ids = get_conjunto_ids(grafo, tam);
                     Grafo* arvore_geradora_minima_kruskal = grafo->arvore_geradora_minima_kruskal(ids);
-                    std::cout << "Arvore Geradora Minima (Kruskal) - Saida em tela nao implementada para Grafo*" << std::endl;
-
+                    std::cout << "Arvore Geradora Minima (Kruskal)" << std::endl;
+                    // --- IMPRESSÃO NA TELA DO CONSOLE ---
+                    arvore_geradora_minima_kruskal->imprimir_grafo_letra_f(std::cout);
+                       
                     if (pergunta_imprimir_arquivo("agm_kruskal.txt")) {
                         std::ofstream outfile("agm_kruskal.txt");
                         if (outfile.is_open() && arvore_geradora_minima_kruskal) {
@@ -203,7 +205,10 @@ void Gerenciador::comandos(Grafo* grafo) {
             case 'g': {
                 char id_no = get_id_entrada();
                 Grafo* arvore_caminhamento_profundidade = grafo->arvore_caminhamento_profundidade(id_no);
-                std::cout << "Arvore de caminhamento em profundidade - Saida em tela nao implementada para Grafo*" << std::endl;
+                // ******************************************************************
+                // OBSERVAÇÃO: IMPLEMENTAÇÃO DA IMPRESSÃO FEITA EM GRAFO.CPP DEVIDO A COMPLEXIDADE
+                // ******************************************************************
+                std::cout << "Arvore de caminhamento em profundidade" << std::endl;
 
                 if (pergunta_imprimir_arquivo("arvore_caminhamento_profundidade.txt")) {
                      std::ofstream outfile("arvore_caminhamento_profundidade.txt");

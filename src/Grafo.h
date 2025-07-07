@@ -47,6 +47,7 @@ public:
     int getOrdem() const { return ordem; }
     No* getNo(char id) const;
     No* getNoPorIndice(int indice) const;
+    const std::vector<No*>& getListaAdj() const { return lista_adj; }
 
     // "STRUCT" PARA CALCULAR TODOS OS ITENS DA LETRA H
     struct MetricasResultados {
@@ -61,6 +62,9 @@ public:
     // Funções auxiliares para Floyd-Warshall
     // O retorno pode ser `std::vector<std::vector<long long>>` para evitar overflow com INF + valor
     std::vector<std::vector<int>> inicializar_matriz_adjacencia_com_pesos() const;
+
+    // FUNÇÃO QUE SABE IMPRIMIR O GRAFO DA LETRA F (UTILIZA LISTA DE ADJACENCIAS)
+    void imprimir_grafo_letra_f(std::ostream& out) const;
 
 private:
     int ordem;
@@ -97,7 +101,12 @@ private:
 
     // NOVA FUNÇÃO AUXILIAR PARA A LETRA G
     void dfs_para_arvore_com_retorno(char id_no_atual, Grafo* arvore, std::map<char, StatusVisita>& status);
-    
+
+    // LETRA F
+    // FUNÇÃO AUXILIAR PARA VERIFICAR SE EXISTE CAMINHO ENTRE DOIS NÓS (USADO NO KRUSKAL SIMPLIFICADO)
+    bool existe_caminho(char id_origem, char id_destino);
+    // FUNÇÃO RECURSIVA PARA A BUSCA EM PROFUNDIDADE USADA POR 'existe_caminho'
+    bool dfs_existe_caminho(char id_atual, char id_destino, std::map<char, bool>& visitados);
 
     
 
