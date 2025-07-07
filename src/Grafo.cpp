@@ -288,7 +288,7 @@ std::vector<char> Grafo::caminho_minimo_dijkstra(char id_no_a, char id_no_b) {
 }
 
 // --- Funções Auxiliares para Floyd-Warshall ---
-std::vector<std::vector<int>> Grafo::inicializar_matriz_adjacencia_com_pesos() {
+std::vector<std::vector<int>> Grafo::inicializar_matriz_adjacencia_com_pesos() const {
     int num_vertices = ordem;
     std::vector<std::vector<int>> dist(num_vertices, std::vector<int>(num_vertices, std::numeric_limits<int>::max()));
 
@@ -404,25 +404,98 @@ Grafo * Grafo::arvore_caminhamento_profundidade(char id_no) {
     return nullptr;
 }
 
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// LETRA H 
+// PARÂMETRO --> o grafo (direcionado ou não direcionado) ponderado nas arestas
+// SAÍDA --> O raio, o diâmetro, o centro e a periferia do grafo.
+// RAIO
 int Grafo::raio() {
-    std::cout << "Metodo raio nao implementado" << std::endl;
-    return 0;
+    MetricasResultados res = calcular_metricas_completas();
+    return res.raio;
 }
-
+// DIAMETRO
 int Grafo::diametro() {
-    std::cout << "Metodo diametro nao implementado" << std::endl;
-    return 0;
+    MetricasResultados res = calcular_metricas_completas();
+    return res.diametro;
 }
-
+// CENTRO
 std::vector<char> Grafo::centro() {
-    std::cout << "Metodo centro nao implementado" << std::endl;
-    return {};
+    MetricasResultados res = calcular_metricas_completas();
+    return res.centro;
 }
-
+// PERIFERIA
 std::vector<char> Grafo::periferia() {
-    std::cout << "Metodo periferia nao implementado" << std::endl;
-    return {};
+    MetricasResultados res = calcular_metricas_completas();
+    return res.periferia;
 }
+// FUNÇÃO AUXILIAR PARA CÁLCULOS
+Grafo::MetricasResultados Grafo::calcular_metricas_completas() const {
+    MetricasResultados resultados; // INICIALIZA A STRUCT DEFINIDA EM PRIVATE
+
+    const int INF = std::numeric_limits<int>::max();
+
+    // 1. OBTER A MATRIZ DE ADJACÊNCIA 
+    std::vector<std::vector<int>> dist = inicializar_matriz_adjacencia_com_pesos();
+
+    // 2. EXECUTAR FLOYD-WARSHALL
+    for (int k = 0; k < ordem; ++k) 
+        for (int i = 0; i < ordem; ++i) 
+            for (int j = 0; j < ordem; ++j) {
+                if (dist[i][k] != INF && dist[k][j] != INF && dist[i][k] + dist[k][j] < dist[i][j]) 
+                    dist[i][j] = dist[i][k] + dist[k][j];
+            }
+        
+    // 3. CALCULAR EXCENTRICIDADES
+    std::vector<int> excentricidades(ordem);
+    bool grafo_conexo = true;
+    for (int i = 0; i < ordem; ++i) {
+        int max_dist = 0;
+        for (int j = 0; j < ordem; ++j) {
+            if (dist[i][j] == INF) {
+                grafo_conexo = false;
+                break;
+            }
+            if (dist[i][j] > max_dist) {
+                max_dist = dist[i][j];
+            }
+        }
+        if (!grafo_conexo) break;
+        excentricidades[i] = max_dist;
+    }
+
+    // GRAFO NÃO É CONEXO
+    if (!grafo_conexo) {
+        resultados.raio = -1;
+        resultados.diametro = -1;
+        // centro e periferia JÁ ESTÃO VAZIOS, PODE RETORNAR
+        return resultados; 
+    }
+
+    // 4. CALCULAR RAIO E DIÂMETRO
+    resultados.raio = excentricidades[0];
+    resultados.diametro = excentricidades[0];
+    for (int i = 1; i < ordem; ++i) {
+        if (excentricidades[i] < resultados.raio) resultados.raio = excentricidades[i];
+        if (excentricidades[i] > resultados.diametro) resultados.diametro = excentricidades[i];
+    }
+
+    // 5. ENCONTRAR CENTRO E PERIFERIA
+    for (int i = 0; i < ordem; ++i) {
+        if (excentricidades[i] == resultados.raio) {
+            resultados.centro.push_back(this->getIdDoIndice(i));
+        }
+        if (excentricidades[i] == resultados.diametro) {
+            resultados.periferia.push_back(this->getIdDoIndice(i));
+        }
+    }
+
+    return resultados; // RETORNA A STRUCT COMPLETA
+}
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+
 
 std::vector<char> Grafo::vertices_de_articulacao() {
     std::cout << "Metodo vertices_de_articulacao nao implementado" << std::endl;

@@ -48,6 +48,20 @@ public:
     No* getNo(char id) const;
     No* getNoPorIndice(int indice) const;
 
+    // "STRUCT" PARA CALCULAR TODOS OS ITENS DA LETRA H
+    struct MetricasResultados {
+        int raio;
+        int diametro;
+        std::vector<char> centro;
+        std::vector<char> periferia;
+    };
+    // FUNÇÃO RESPONSÁVEL POR CALCULAR TODOS OS ITENS DA LETRA H
+    MetricasResultados calcular_metricas_completas() const;
+
+    // Funções auxiliares para Floyd-Warshall
+    // O retorno pode ser `std::vector<std::vector<long long>>` para evitar overflow com INF + valor
+    std::vector<std::vector<int>> inicializar_matriz_adjacencia_com_pesos() const;
+
 private:
     int ordem;
     bool is_direcionado;
@@ -78,9 +92,12 @@ private:
         }
     };
 
-    // Funções auxiliares para Floyd-Warshall
-    // O retorno pode ser `std::vector<std::vector<long long>>` para evitar overflow com INF + valor
-    std::vector<std::vector<int>> inicializar_matriz_adjacencia_com_pesos();
+    
+
+
+    
+    
+
 };
 
 #endif // GRAFO_H
