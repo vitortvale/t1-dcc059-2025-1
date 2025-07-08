@@ -151,7 +151,7 @@ void Gerenciador::comandos(Grafo* grafo) {
                 if (tam > 0 && tam <= grafo->getOrdem()) {
                     std::vector<char> ids = get_conjunto_ids(grafo, tam);
                     Grafo* arvore_geradora_minima_prim = grafo->arvore_geradora_minima_prim(ids);
-                    std::cout << "Arvore Geradora Minima (Prim) - Saida em tela nao implementada para Grafo*" << std::endl;
+                    grafo->print_arvore(arvore_geradora_minima_prim);
 
                     if (pergunta_imprimir_arquivo("agm_prim.txt")) {
                         std::ofstream outfile("agm_prim.txt");
@@ -205,8 +205,9 @@ void Gerenciador::comandos(Grafo* grafo) {
             case 'g': {
                 char id_no = get_id_entrada();
                 Grafo* arvore_caminhamento_profundidade = grafo->arvore_caminhamento_profundidade(id_no);
+                arvore_caminhamento_profundidade->imprimir_grafo_letra_f(std::cout);
                 // ******************************************************************
-                // OBSERVAÇÃO: IMPLEMENTAÇÃO DA IMPRESSÃO FEITA EM GRAFO.CPP DEVIDO A COMPLEXIDADE
+                // OBSERVAÇÃO: MESMA IMPRESSAO DA LETRA F
                 // ******************************************************************
                 std::cout << "Arvore de caminhamento em profundidade" << std::endl;
 

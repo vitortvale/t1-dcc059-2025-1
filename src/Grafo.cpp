@@ -6,7 +6,6 @@
 #include <stack>     // Para DFS iterativo
 #include <limits>    // Para std::numeric_limits<int>::max()
 
-
 Grafo::Grafo() :
     ordem(0),
     is_direcionado(false),
@@ -44,7 +43,7 @@ Grafo::~Grafo() {
 
 void Grafo::add_no(No *novo_no) {
     if (id_para_indice.count(novo_no->getId()) > 0) {
-        std::cerr << "Erro: No com ID '" << novo_no->getId() << "' ja existe no grafo. Nao adicionado." << std::endl;
+        std::cerr << "Erro: Nó com ID '" << novo_no->getId() << "' já existe no grafo. Não adicionado." << std::endl;
         delete novo_no;
         return;
     }
@@ -63,8 +62,8 @@ void Grafo::add_aresta(char id_origem, char id_destino, int peso_aresta) {
     No* no_destino = getNo(id_destino);
 
     if (no_origem == nullptr || no_destino == nullptr) {
-        std::cerr << "Erro: Tentativa de adicionar aresta com ID(s) de no invalido(s) ("
-                  << id_origem << " ou " << id_destino << " nao encontrados)." << std::endl;
+        std::cerr << "Erro: Tentativa de adicionar aresta com ID(s) de nó inválido(s) ("
+                  << id_origem << " ou " << id_destino << " não encontrados)." << std::endl;
         return;
     }
 
@@ -105,7 +104,7 @@ void Grafo::add_aresta(char id_origem, char id_destino, int peso_aresta) {
             }
         }
     } else {
-        std::cout << "Aresta " << id_origem << " -> " << id_destino << " ja existe. Nao adicionada novamente." << std::endl;
+        std::cout << "Aresta " << id_origem << " -> " << id_destino << " já existe. Não adicionada novamente." << std::endl;
     }
 }
 
@@ -388,11 +387,147 @@ std::vector<char> Grafo::caminho_minimo_floyd(char id_no_a, char id_no_b) {
     return caminho_final;
 }
 
+// --- Implementacao do algoritmo de Prim
+// Input: subconjunto de X vertices
+// Output: Arvore geradora minima com o subgrafo vertice induzido
+Grafo* Grafo::arvore_geradora_minima_prim(const std::vector<char>& ids_nos) {
+    // Cria o grafo para a arvore
+    Grafo* mst = new Grafo();
+    mst->setPonderadoAresta(is_ponderado_aresta);
+    mst->setDirecionado(false);
 
-// --- Outras funcionalidades (Stubs permanecem) ---
-Grafo * Grafo::arvore_geradora_minima_prim(const std::vector<char>& ids_nos) {
-    std::cout << "Metodo arvore_geradora_minima_prim nao implementado" << std::endl;
-    return nullptr;
+    if (ids_nos.empty()) {
+        return mst;
+    }
+
+    std::vector<No*> nos_subgrafo;
+    for (char id : ids_nos) {
+        int indice = getIndiceDoId(id);
+        if (indice == -1) {
+            std::cerr << "Erro: Nó com ID '" << id << "' não encontrado." << std::endl;
+            delete mst;
+            return nullptr;
+        }
+        No* no = getNoPorIndice(indice);
+        nos_subgrafo.push_back(no);
+        
+        No* novo_no = new No(no->getId(), no->getPeso());
+        mst->add_no(novo_no);
+    }
+
+    std::vector<bool> inMST(nos_subgrafo.size(), false);
+    std::vector<std::pair<No*, int>> minEdge(nos_subgrafo.size(), {nullptr, std::numeric_limits<int>::max()});
+
+    // Fila de prioridade: (peso, indice do no, no)
+    std::priority_queue<std::tuple<int, int, No*>, 
+                      std::vector<std::tuple<int, int, No*>>,
+                      std::greater<std::tuple<int, int, No*>>> pq;
+
+    // Comeca com o primeiro no
+    pq.push({0, 0, nullptr});
+    int nodesInTree = 0;
+
+    while (!pq.empty() && nodesInTree < nos_subgrafo.size()) {
+        auto [weight, u_idx, src_no] = pq.top();
+        pq.pop();
+
+        if (inMST[u_idx]) continue;
+        inMST[u_idx] = true;
+        nodesInTree++;
+
+        // Adiciona aresta na arvore
+        if (src_no != nullptr) {
+            No* u = nos_subgrafo[u_idx];
+            mst->add_aresta(src_no->getId(), u->getId(), weight);
+        }
+
+        // Atualiza vizinhos
+        No* u = nos_subgrafo[u_idx];
+        for (Aresta* aresta : u->getArestas()) {
+            No* v = aresta->getNoAlvo();
+            
+            // Confere se o vizinho esta no subgrafo
+            auto it = std::find_if(nos_subgrafo.begin(), nos_subgrafo.end(),
+                                 [v](No* no) { return no->getId() == v->getId(); });
+            
+            if (it != nos_subgrafo.end()) {
+                int v_idx = std::distance(nos_subgrafo.begin(), it);
+                int edge_weight = aresta->getPeso();
+
+                if (!inMST[v_idx] && edge_weight < minEdge[v_idx].second) {
+                    minEdge[v_idx] = {u, edge_weight};
+                    pq.push({edge_weight, v_idx, u});
+                }
+            }
+        }
+    }
+
+    // Verifica se a arvore contem todos os nos
+    if (nodesInTree != nos_subgrafo.size()) {
+        std::cerr << "Aviso: Subgrafo não é conexo. AGM pode estar incompleta." << std::endl;
+    }
+
+    return mst;
+}
+
+void Grafo::print_arvore(Grafo* arvore) {
+    if (arvore == nullptr) {
+        std::cout << "Árvore inválida (nullptr)" << std::endl;
+        return;
+    }
+
+    std::cout << "\n╔══════════════════════════╗";
+    std::cout << "\n║  ÁRVORE GERADORA MÍNIMA  ║";
+    std::cout << "\n╚══════════════════════════╝" << std::endl;
+
+    if (arvore->lista_adj.empty()) {
+        std::cout << "Árvore vazia!" << std::endl;
+        return;
+    }
+
+    // Imprime nos
+    std::cout << "\nNós: [";
+    for (size_t i = 0; i < arvore->indice_para_id.size(); ++i) {
+        std::cout << arvore->indice_para_id[i];
+        if (i != arvore->indice_para_id.size() - 1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "]" << std::endl;
+
+    // Imprime arestas com pesos (se houver peso)
+    std::cout << "\nArestas:" << std::endl;
+    for (No* no : arvore->lista_adj) {
+        for (Aresta* aresta : no->getArestas()) {
+            // Evitar imprimir 2 vezes em grafos n direcionados
+            if (arvore->is_direcionado || no->getId() <= aresta->getNoAlvo()->getId()) {
+                std::cout << "  " << no->getId() << " ─";
+                
+                if (arvore->is_ponderado_aresta) {
+                    std::cout << "[" << aresta->getPeso() << "]─";
+                } else {
+                    std::cout << "──";
+                }
+                
+                std::cout << " " << aresta->getNoAlvo()->getId() << std::endl;
+            }
+        }
+    }
+
+    // Calcula e imprime peso total
+    if (arvore->is_ponderado_aresta) {
+        int peso_total = 0;
+        for (No* no : arvore->lista_adj) {
+            for (Aresta* aresta : no->getArestas()) {
+                if (arvore->is_direcionado || no->getId() <= aresta->getNoAlvo()->getId()) {
+                    peso_total += aresta->getPeso();
+                }
+            }
+        }
+        std::cout << "\nPeso total: " << peso_total << std::endl;
+    }
+
+    std::cout << std::endl;
 }
 
 //******************************************************************************
@@ -720,9 +855,7 @@ Grafo::MetricasResultados Grafo::calcular_metricas_completas() const {
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-
-
+//-------
 std::vector<char> Grafo::vertices_de_articulacao() {
     std::cout << "Metodo vertices_de_articulacao nao implementado" << std::endl;
     return {};

@@ -66,6 +66,9 @@ public:
     // FUNÇÃO QUE SABE IMPRIMIR O GRAFO DA LETRA F (UTILIZA LISTA DE ADJACENCIAS)
     void imprimir_grafo_letra_f(std::ostream& out) const;
 
+    // Funcao para imprimir o grafo retornado pelo algoritmo de prim
+    void print_arvore(Grafo* arvore);
+
 private:
     int ordem;
     bool is_direcionado;
